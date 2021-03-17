@@ -1,9 +1,7 @@
 
 ## Project Live Preview
 
-Thanks for checking out this front-end coding challenge.
-
-[Project Live Preview](https://www.frontendmentor.io)
+[Project Live Preview](https://ip-tracker-beta.vercel.app/)
 # Frontend Mentor - IP address tracker
 
 ![Design preview for the IP address tracker coding challenge](./design/desktop-preview.jpg)
