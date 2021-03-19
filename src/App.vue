@@ -3,7 +3,7 @@
     <header>
       <h1>IP Address Tracker</h1>
       <div class="tracker-form">
-        <form>
+        <form @submit.prevent="searchLocation">
           <input
             type="text"
             name="address"
@@ -38,13 +38,17 @@
       <div class="box">
         <span class="title">Timezone</span>
         <lazy-loader v-if="isLoading"></lazy-loader>
-        <h6 class="text-content" v-else-if="!isLoading && !fetchError">UTC {{ timeZone }}</h6>
+        <h6 class="text-content" v-else-if="!isLoading && !fetchError">
+          UTC {{ timeZone }}
+        </h6>
         <h6 class="error-content" v-else>-----</h6>
       </div>
       <div class="box">
         <span class="title">ISP</span>
         <lazy-loader v-if="isLoading"></lazy-loader>
-        <h6 class="text-content" v-else-if="!isLoading && !fetchError">{{ ispInfo }}</h6>
+        <h6 class="text-content" v-else-if="!isLoading && !fetchError">
+          {{ ispInfo }}
+        </h6>
         <h6 class="error-content" v-else>-----</h6>
       </div>
     </div>
@@ -62,16 +66,32 @@ export default {
       return this.locationInformation.ip;
     },
     ispInfo() {
-      return this.locationInformation.isp;
+      if (this.locationInformation.isp !== "") {
+        return this.locationInformation.isp;
+      } else {
+        return "-----";
+      }
     },
     timeZone() {
-      return this.locationInformation.location.timezone;
+      if (this.locationInformation.location.timezone !== "") {
+        return this.locationInformation.location.timezone;
+      } else {
+        return "-----";
+      }
     },
     city() {
-      return this.locationInformation.location.city;
+      if (this.locationInformation.location.city !== "") {
+        return this.locationInformation.location.city;
+      } else {
+        return "-----";
+      }
     },
     country() {
-      return this.locationInformation.location.country;
+      if (this.locationInformation.location.country !== "") {
+        return this.locationInformation.location.country;
+      } else {
+        return "-----";
+      }
     },
   },
   data() {
@@ -105,6 +125,22 @@ export default {
         }, 1250);
         this.fetchError = true;
       }
+    },
+    searchLocation() {
+      if (this.address === "") {
+        alert("Kindly enter a valid IP Address");
+        return;
+      } else if(!this.ValidateIPaddress(this.address)){
+        alert("You have entered an invalid IP Address.");
+        return;
+      } else {
+        this.fetchLocation(this.address);
+      }
+    },
+    ValidateIPaddress(ipaddress) {
+      return /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/.test(
+        ipaddress
+      );
     },
   },
   created() {
