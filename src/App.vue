@@ -21,25 +21,31 @@
     <div class="results-box">
       <div class="box">
         <span class="title">IP Address</span>
-        <h6 class="text-content" v-if="!isLoading">{{ ipAddress }}</h6>
-        <lazy-loader v-else></lazy-loader>
+        <lazy-loader v-if="isLoading"></lazy-loader>
+        <h6 class="text-content" v-else-if="!isLoading && !fetchError">
+          {{ ipAddress }}
+        </h6>
+        <h6 class="error-content" v-else>-----</h6>
       </div>
       <div class="box">
         <span class="title">Location</span>
-        <h6 class="text-content" v-if="!isLoading">
+        <lazy-loader v-if="isLoading"></lazy-loader>
+        <h6 class="text-content" v-else-if="!isLoading && !fetchError">
           {{ city }}, {{ country }}
         </h6>
-        <lazy-loader v-else></lazy-loader>
+        <h6 class="error-content" v-else>-----</h6>
       </div>
       <div class="box">
         <span class="title">Timezone</span>
-        <h6 class="text-content" v-if="!isLoading">UTC {{ timeZone }}</h6>
-        <lazy-loader v-else></lazy-loader>
+        <lazy-loader v-if="isLoading"></lazy-loader>
+        <h6 class="text-content" v-else-if="!isLoading && !fetchError">UTC {{ timeZone }}</h6>
+        <h6 class="error-content" v-else>-----</h6>
       </div>
       <div class="box">
         <span class="title">ISP</span>
-        <h6 class="text-content" v-if="!isLoading">{{ ispInfo }}</h6>
-        <lazy-loader v-else></lazy-loader>
+        <lazy-loader v-if="isLoading"></lazy-loader>
+        <h6 class="text-content" v-else-if="!isLoading && !fetchError">{{ ispInfo }}</h6>
+        <h6 class="error-content" v-else>-----</h6>
       </div>
     </div>
   </div>
@@ -70,9 +76,10 @@ export default {
   },
   data() {
     return {
-      isLoading: true,
+      isLoading: false,
+      fetchError: false,
       address: "",
-      locationInformation: {},
+      locationInformation: null,
     };
   },
   methods: {
@@ -81,13 +88,23 @@ export default {
         ? `https://geo.ipify.org/api/v1?apiKey=at_78UfYWzp6IU5V1ZGycSWeHBeh4hPU&ipAddress=${address}`
         : `https://geo.ipify.org/api/v1?apiKey=at_78UfYWzp6IU5V1ZGycSWeHBeh4hPU&`;
       this.isLoading = true;
-      const response = await fetch(ipAddress);
-      const responseData = await response.json();
-      this.locationInformation = responseData;
-      console.log(responseData);
-      setTimeout(() => {
-        this.isLoading = false;
-      }, 1250);
+      try {
+        const response = await fetch(ipAddress);
+        const responseData = await response.json();
+        if (responseData !== {}) {
+          this.locationInformation = responseData;
+        }
+        console.log(responseData);
+        setTimeout(() => {
+          this.isLoading = false;
+        }, 1250);
+      } catch (error) {
+        console.log(error);
+        setTimeout(() => {
+          this.isLoading = false;
+        }, 1250);
+        this.fetchError = true;
+      }
     },
   },
   created() {
@@ -219,6 +236,13 @@ body::after {
         color: hsl(0, 0%, 17%);
         font-size: 24px;
         font-weight: 500;
+      }
+
+      .error-content {
+        color: hsl(0, 0%, 17%);
+        font-size: 24px;
+        font-weight: 500;
+        margin: 0 0 20px;
       }
 
       &:after {
