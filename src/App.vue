@@ -1,23 +1,6 @@
 <template>
   <div class="app-content">
-    <header>
-      <h1>IP Address Tracker</h1>
-      <div class="tracker-form">
-        <form @submit.prevent="searchLocation">
-          <input
-            type="text"
-            name="address"
-            id="address"
-            v-model.trim="address"
-            placeholder="Search for any IP address or domain"
-          />
-          <button class="submit">
-            <img src="./assets/images/icon-arrow.svg" alt="" />
-          </button>
-        </form>
-      </div>
-    </header>
-
+    <SearchForm @search-location="searchLocation" />
     <div class="results-box">
       <div class="box">
         <span class="title">IP Address</span>
@@ -56,96 +39,109 @@
 </template>
 
 <script>
+import { ref, computed } from "vue";
 import LazyLoader from "./components/LazyLoader.vue";
+import SearchForm from "./components/SearchForm.vue";
 
 export default {
-  components: { LazyLoader },
+  components: { LazyLoader, SearchForm },
   name: "App",
-  computed: {
-    ipAddress() {
-      return this.locationInformation.ip;
-    },
-    ispInfo() {
-      if (this.locationInformation.isp !== "") {
-        return this.locationInformation.isp;
-      } else {
-        return "-----";
-      }
-    },
-    timeZone() {
-      if (this.locationInformation.location.timezone !== "") {
-        return this.locationInformation.location.timezone;
-      } else {
-        return "-----";
-      }
-    },
-    city() {
-      if (this.locationInformation.location.city !== "") {
-        return this.locationInformation.location.city;
-      } else {
-        return "-----";
-      }
-    },
-    country() {
-      if (this.locationInformation.location.country !== "") {
-        return this.locationInformation.location.country;
-      } else {
-        return "-----";
-      }
-    },
-  },
-  data() {
-    return {
-      isLoading: false,
-      fetchError: false,
-      address: "",
-      locationInformation: null,
-    };
-  },
-  methods: {
-    async fetchLocation(address) {
-      let ipAddress = address
-        ? `https://geo.ipify.org/api/v1?apiKey=at_78UfYWzp6IU5V1ZGycSWeHBeh4hPU&ipAddress=${address}`
+  setup() {
+    // Data
+    const isLoading = ref(false);
+    const fetchError = ref(false);
+    const locationInformation = ref(null);
+
+    // Methods
+    const fetchLocation = async (location) => {
+      let ipAddress = location
+        ? `https://geo.ipify.org/api/v1?apiKey=at_78UfYWzp6IU5V1ZGycSWeHBeh4hPU&ipAddress=${location}`
         : `https://geo.ipify.org/api/v1?apiKey=at_78UfYWzp6IU5V1ZGycSWeHBeh4hPU&`;
-      this.isLoading = true;
+      isLoading.value = true;
       try {
         const response = await fetch(ipAddress);
         const responseData = await response.json();
-        if (responseData !== {}) {
-          console.log(responseData)
-          this.locationInformation = responseData;
+        if (!response.ok) {
+          const error = response.statusText;
+          throw error;
         }
-        console.log(responseData);
+        if (responseData.code === 422) {
+          isLoading.value = false;
+          fetchError.value = true;
+          alert(responseData.messages);
+        } else {
+          locationInformation.value = responseData;
+        }
         setTimeout(() => {
-          this.isLoading = false;
-        }, 1250);
-      } catch (error) {
-        console.log(error);
-        setTimeout(() => {
-          this.isLoading = false;
-        }, 1250);
-        this.fetchError = true;
+          isLoading.value = false;
+        }, 500);
+      } catch {
+        isLoading.value = false;
+        fetchError.value = true;
       }
-    },
-    searchLocation() {
-      if (this.address === "") {
-        alert("Kindly enter a valid IP Address");
-        return;
-      } else if(!this.ValidateIPaddress(this.address)){
-        alert("You have entered an invalid IP Address.");
-        return;
-      } else {
-        this.fetchLocation(this.address);
-      }
-    },
-    ValidateIPaddress(ipaddress) {
+    };
+    fetchLocation();
+
+    const ValidateIPaddress = (ipaddress) => {
       return /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/.test(
         ipaddress
       );
-    },
-  },
-  created() {
-    this.fetchLocation();
+    };
+
+    const searchLocation = (value) => {
+      if (value === "") {
+        alert("Kindly enter a valid IP Address");
+        return;
+      } else if (!ValidateIPaddress(value)) {
+        alert("You have entered an invalid IP Address.");
+        return;
+      } else {
+        fetchLocation(value);
+      }
+    };
+
+    // Computed properties
+    const ipAddress = computed(() => locationInformation.value.ip);
+    const ispInfo = computed(() => {
+      if (locationInformation.value.isp !== "") {
+        return locationInformation.value.isp;
+      } else {
+        return "-----";
+      }
+    });
+    const timeZone = computed(() => {
+      if (locationInformation.value.location.timezone !== "") {
+        return locationInformation.value.location.timezone;
+      } else {
+        return "-----";
+      }
+    });
+    const city = computed(() => {
+      if (locationInformation.value.location.city !== "") {
+        return locationInformation.value.location.city;
+      } else {
+        return "-----";
+      }
+    });
+    const country = computed(() => {
+      if (locationInformation.value.location.country !== "") {
+        return locationInformation.value.location.country;
+      } else {
+        return "-----";
+      }
+    });
+
+    return {
+      isLoading,
+      fetchError,
+      locationInformation,
+      searchLocation,
+      ipAddress,
+      ispInfo,
+      timeZone,
+      city,
+      country,
+    };
   },
 };
 </script>
@@ -188,47 +184,6 @@ body::after {
 }
 
 .app-content {
-  header {
-    max-width: 500px;
-    width: 90%;
-    padding-top: 30px;
-    margin: 0 auto 40px;
-
-    h1 {
-      color: #ffffff;
-      text-align: center;
-      font-size: 24px;
-      margin-bottom: 20px;
-      font-weight: 400;
-    }
-
-    form {
-      display: flex;
-      height: 60px;
-
-      input {
-        width: 100%;
-        height: 100%;
-        background: #ffffff;
-        border-radius: 15px 0 0 15px;
-        border: none;
-        outline: none;
-        padding: 0 20px;
-        font: inherit;
-      }
-
-      button {
-        width: 60px;
-        background: hsl(0, 0%, 17%);
-        outline: none;
-        border: none;
-        border-radius: 0 15px 15px 0;
-        height: 100%;
-        cursor: pointer;
-      }
-    }
-  }
-
   .results-box {
     background: #fff;
     border-radius: 15px;
