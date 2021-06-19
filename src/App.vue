@@ -112,6 +112,7 @@ export default {
         const response = await fetch(ipAddress);
         const responseData = await response.json();
         if (responseData !== {}) {
+          console.log(responseData)
           this.locationInformation = responseData;
         }
         console.log(responseData);
@@ -171,7 +172,7 @@ body {
 body::after {
   content: "";
   position: absolute;
-  height: 220px;
+  height: 250px;
   width: 100%;
   background: url("./assets/images/pattern-bg.png");
   background-size: cover;
@@ -180,6 +181,10 @@ body::after {
   top: 0;
   left: 0;
   z-index: -1;
+
+  @media screen and (max-width: 576px) {
+    height: 340px;
+  }
 }
 
 .app-content {
@@ -199,7 +204,7 @@ body::after {
 
     form {
       display: flex;
-      height: 50px;
+      height: 60px;
 
       input {
         width: 100%;
@@ -227,7 +232,7 @@ body::after {
   .results-box {
     background: #fff;
     border-radius: 15px;
-    padding: 20px;
+    padding: 30px 20px;
     max-width: 1024px;
     width: 90%;
     margin: auto;
@@ -288,7 +293,7 @@ body::after {
         width: 1px;
         background: rgba(150, 150, 150, 0.5);
         right: 10px;
-        top: 21px;
+        top: 1px;
       }
 
       &:last-child {
