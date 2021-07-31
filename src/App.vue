@@ -35,11 +35,19 @@
         <h6 class="error-content" v-else>-----</h6>
       </div>
     </div>
+    <!-- MAPS -->
+    <div class="map">
+      <div id="mapid"></div>
+      <div class="loader" v-if="isLoading">
+        <div></div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script>
-import { ref, computed } from "vue";
+import { ref, computed, onMounted } from "vue";
+import leaflet from "leaflet";
 import LazyLoader from "./components/LazyLoader.vue";
 import SearchForm from "./components/SearchForm.vue";
 
@@ -47,10 +55,30 @@ export default {
   components: { LazyLoader, SearchForm },
   name: "App",
   setup() {
+    let mymap;
     // Data
     const isLoading = ref(false);
     const fetchError = ref(false);
     const locationInformation = ref(null);
+
+    onMounted(() => {
+      mymap = leaflet.map("mapid").setView([51.505, -0.09], 9);
+      leaflet
+        .tileLayer(
+          "https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token=pk.eyJ1IjoiYm9sdXdhdGlmZSIsImEiOiJja3JyZHBqemE1anU3MnVwOGZjOXRzcHdlIn0.vUD6lmkxdUolOjiAS3P7CQ",
+          {
+            attribution:
+              'Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
+            maxZoom: 18,
+            id: "mapbox/streets-v11",
+            tileSize: 512,
+            zoomOffset: -1,
+            accessToken:
+              "pk.eyJ1IjoiYm9sdXdhdGlmZSIsImEiOiJja3JyZHBqemE1anU3MnVwOGZjOXRzcHdlIn0.vUD6lmkxdUolOjiAS3P7CQ",
+          }
+        )
+        .addTo(mymap);
+    });
 
     // Methods
     const fetchLocation = async (location) => {
@@ -68,12 +96,18 @@ export default {
         if (responseData.code === 422) {
           isLoading.value = false;
           fetchError.value = true;
-          alert(responseData.messages);
         } else {
           locationInformation.value = responseData;
         }
         setTimeout(() => {
           isLoading.value = false;
+          leaflet
+            .marker([responseData.location.lat, responseData.location.lng])
+            .addTo(mymap);
+          mymap.setView(
+            [responseData.location.lat, responseData.location.lng],
+            15
+          );
         }, 500);
       } catch {
         isLoading.value = false;
@@ -168,7 +202,7 @@ body {
 body::after {
   content: "";
   position: absolute;
-  height: 250px;
+  height: 300px;
   width: 100%;
   background: url("./assets/images/pattern-bg.png");
   background-size: cover;
@@ -183,7 +217,51 @@ body::after {
   }
 }
 
+#mapid {
+  height: 700px;
+  z-index: 10;
+}
+
+@keyframes rota {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.map {
+  position: relative;
+  height: 700px;
+  z-index: 10;
+  overflow: hidden;
+
+  .loader {
+    position: absolute;
+    top: 0;
+    left: 0;
+    background: rgba(255, 255, 255, 0.95);
+    width: 100%;
+    height: 700px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 11;
+
+    div {
+      height: 50px;
+      width: 50px;
+      border: 5px solid rebeccapurple;
+      border-radius: 50%;
+      border-top: 5px solid transparent;
+      animation: rota 1s ease-in-out infinite;
+    }
+  }
+}
+
 .app-content {
+  position: relative;
   .results-box {
     background: #fff;
     border-radius: 15px;
@@ -195,6 +273,11 @@ body::after {
     justify-content: space-between;
     box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
     flex-wrap: wrap;
+    position: absolute;
+    top: 200px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 20;
 
     .box {
       position: relative;

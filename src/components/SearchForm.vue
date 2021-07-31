@@ -37,7 +37,7 @@ header {
   max-width: 500px;
   width: 90%;
   padding-top: 30px;
-  margin: 0 auto 40px;
+  margin: 0 auto 150px;
 
   h1 {
     color: #ffffff;
