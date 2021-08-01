@@ -315,6 +315,10 @@ body::after {
         color: hsl(0, 0%, 17%);
         font-size: 24px;
         font-weight: 500;
+        display: -webkit-box;
+        -webkit-line-clamp: 1;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
       }
 
       .error-content {
