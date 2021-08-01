@@ -106,7 +106,7 @@ export default {
             .addTo(mymap);
           mymap.setView(
             [responseData.location.lat, responseData.location.lng],
-            15
+            13
           );
         }, 500);
       } catch {
